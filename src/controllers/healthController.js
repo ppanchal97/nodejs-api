@@ -1,7 +1,9 @@
-'use strict';
-
-function getHealth(req, res) {
-  res.status(200).json({ status: 'ok' });
-}
+const getHealth = (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+};
 
 module.exports = { getHealth };

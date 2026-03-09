@@ -1,61 +1,60 @@
-const db = require('../db');
-const { successResponse } = require('../utils/response');
+const userService = require('../services/userService');
 
-const getAllUsers = (req, res, next) => {
+const getAllUsers = async (req, res, next) => {
   try {
-    const users = db.users.map(({ password, ...u }) => u);
-    return successResponse(res, users, 'Users retrieved');
-  } catch (err) {
-    next(err);
+    const users = await userService.getAllUsers();
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    next(error);
   }
 };
 
-const getUserById = (req, res, next) => {
+const getUserById = async (req, res, next) => {
   try {
-    const user = db.users.find(u => u.id === req.params.id);
+    const user = await userService.getUserById(req.params.id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    const { password, ...userWithoutPassword } = user;
-    return successResponse(res, userWithoutPassword, 'User retrieved');
-  } catch (err) {
-    next(err);
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
   }
 };
 
-const updateUser = (req, res, next) => {
+const createUser = async (req, res, next) => {
   try {
-    const idx = db.users.findIndex(u => u.id === req.params.id);
-    if (idx === -1) {
+    const user = await userService.createUser(req.body);
+    res.status(201).json({ success: true, data: user });
+  } catch (error) {
+    if (error.code === 'DUPLICATE_EMAIL') {
+      return res.status(409).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    const user = await userService.updateUser(req.params.id, req.body);
+    if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    if (req.user.id !== req.params.id) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
-    }
-    const { name, email } = req.body;
-    if (name !== undefined) db.users[idx].name = name;
-    if (email !== undefined) db.users[idx].email = email;
-    const { password, ...userWithoutPassword } = db.users[idx];
-    return successResponse(res, userWithoutPassword, 'User updated');
-  } catch (err) {
-    next(err);
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
   }
 };
 
-const deleteUser = (req, res, next) => {
+const deleteUser = async (req, res, next) => {
   try {
-    const idx = db.users.findIndex(u => u.id === req.params.id);
-    if (idx === -1) {
+    const deleted = await userService.deleteUser(req.params.id);
+    if (!deleted) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    if (req.user.id !== req.params.id) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
-    }
-    db.users.splice(idx, 1);
-    return successResponse(res, null, 'User deleted');
-  } catch (err) {
-    next(err);
+    res.status(200).json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    next(error);
   }
 };
 
-module.exports = { getAllUsers, getUserById, updateUser, deleteUser };
+module.exports = { getAllUsers, getUserById, createUser, updateUser, deleteUser };
