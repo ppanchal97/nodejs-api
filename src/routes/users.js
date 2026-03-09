@@ -1,16 +1,11 @@
-'use strict';
-
 const express = require('express');
 const router = express.Router();
-const { requireAuth } = require('../middleware/auth');
-const { listUsers, getUser, createUser, updateUser, deleteUser } = require('../controllers/usersController');
+const { getAllUsers, getUserById, updateUser, deleteUser } = require('../controllers/userController');
+const { authenticate } = require('../middleware/authenticate');
 
-router.use(requireAuth);
-
-router.get('/', listUsers);
-router.post('/', createUser);
-router.get('/:id', getUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.get('/', authenticate, getAllUsers);
+router.get('/:id', authenticate, getUserById);
+router.put('/:id', authenticate, updateUser);
+router.delete('/:id', authenticate, deleteUser);
 
 module.exports = router;

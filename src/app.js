@@ -1,23 +1,17 @@
-'use strict';
-
 const express = require('express');
+const { errorHandler } = require('./middleware/errorHandler');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const postRoutes = require('./routes/posts');
+
 const app = express();
 
 app.use(express.json());
 
-const healthRouter = require('./routes/health');
-const authRouter = require('./routes/auth');
-const usersRouter = require('./routes/users');
-const itemsRouter = require('./routes/items');
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
 
-app.use('/health', healthRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/items', itemsRouter);
-
-// 404 fallback
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+app.use(errorHandler);
 
 module.exports = app;
