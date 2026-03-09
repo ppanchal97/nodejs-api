@@ -15,6 +15,13 @@ describe('GET /api/items', () => {
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
   });
+
+  it('returns 404 for an unrecognised sub-resource (error case)', async () => {
+    // PATCH is not defined on /api/items, so it falls through to the global 404 handler
+    const res = await request(app).patch('/api/items');
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('error');
+  });
 });
 
 describe('GET /api/items/:id', () => {
